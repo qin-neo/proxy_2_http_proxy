@@ -23,3 +23,14 @@ Client visit Internet:
  http_porxy=http://user:pass@20.0.0.2:8888
 https_proxy=http://user:pass@20.0.0.2:8888
 ```
+
+## On Client, if met SSL: CERTIFICATE_VERIFY_FAILED or simular error,
+Please import HTTP_PROXY certificate into client OS.
+1. Find root ca. On Windows, the root path is: 
+> iexplore -> Internet选项 -> 内容 -> 证书 -> 受信任的根证书颁发机构 -> (your http_proxy cert)
+2. Export it, then copy to Client.
+3. Import Client. On Linux, the cert should be .crt format.
+> openssl x509 -inform DER -in http_proxy_cert.cer -out http_proxy_cert.crt
+> yum install ca-certificates -y
+> cp http_proxy_cert.crt /etc/pki/ca-trust/source/anchors/
+> update-ca-trust
