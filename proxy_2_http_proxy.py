@@ -10,29 +10,38 @@ class https_proxy(socketserver.StreamRequestHandler):
             return
 
         self.client_sock = socket.create_connection((args.remote_server_ip, args.remote_server_port))
-        self.client_sock.setblocking(0)
-        self.connection.setblocking(0)
-        conn_ts = time.time()
+        def thr_client_sock_recv():
+            while True:
+                try:
+                    buff = self.client_sock.recv(65535)
+                    if buff:
+                        self.connection.send(buff)
+                    else:
+                        return
+                except:
+                    logging.exception('thr_client_sock_recv')
+                    return
 
-        while True:
-            (sread, swrite, sexc) =  select.select([self.connection, self.client_sock], [], [], 0.05)
-            if self.client_sock in sread:
-                buff = self.client_sock.recv(8192)
-                if buff:
-                    self.connection.send(buff)
-                else:
-                    break
-            if self.connection in sread:
-                buff = self.connection.recv(8192)
-                if buff:
-                    conn_ts = time.time()
-                    self.client_sock.send(buff)
-                else:
-                    break
-            if time.time() - conn_ts > 5:
-                break
+        def thr_cleint_sock_send():
+            while self.client_sock.fileno():
+                try:
+                    buff = self.connection.recv(65535)
+                    if buff:
+                        self.client_sock.send(buff)
+                    else:
+                        return
+                except:
+                    logging.exception('thr_cleint_sock_send')
+                    return
 
+        t_recv = threading.Thread(target=thr_client_sock_recv, args=())
+        t_send = threading.Thread(target=thr_cleint_sock_send, args=())
+        t_recv.start()
+        t_send.start()
+        t_send.join()
+        t_recv.join()
         self.client_sock.close()
+        self.connection.close()
         print('--{}:{}--END'.format(peer_host, peer_port))
 
 if __name__ == "__main__":
