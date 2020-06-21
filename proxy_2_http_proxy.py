@@ -10,7 +10,7 @@ class https_proxy(socketserver.StreamRequestHandler):
         peer_host, peer_port = self.connection.getpeername()
         print('--{}:{}--'.format(peer_host, peer_port))
         if not peer_host in g_client_ips:
-            print('Only permit {}.'.format(args.client_ip))
+            print('Only permit [{}].'.format(args.client_ip))
             return
 
         self.client_sock = socket.create_connection((g_proxy_ip, g_proxy_port))
@@ -81,6 +81,7 @@ HTTPS cert issue, please visit https://github.com/qin-neo/proxy_2_http_proxy
     g_proxy_ip, g_proxy_port = args.proxy_ip_port.split(':')
     g_proxy_port = int(g_proxy_port)
     g_client_ips = args.client_ip.split(',')
+    g_client_ips.append('127.0.0.1')
 
     if local_ip == '0.0.0.0':
         ip_2_client = get_local_ip(args.client_ip, 8000)
