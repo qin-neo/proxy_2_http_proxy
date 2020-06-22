@@ -49,8 +49,7 @@ class https_proxy(socketserver.StreamRequestHandler):
         print('--{}:{}--END'.format(peer_host, peer_port))
 
 def get_local_ip(ip, port):
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect((ip, port))
         return s.getsockname()[0]
     finally:
@@ -84,7 +83,7 @@ HTTPS cert issue, please visit https://github.com/qin-neo/proxy_2_http_proxy
     g_client_ips.append('127.0.0.1')
 
     if local_ip == '0.0.0.0':
-        ip_2_client = get_local_ip(args.client_ip, 8000)
+        ip_2_client = get_local_ip(g_client_ips[0], 8000)
     else:
         ip_2_client = local_ip
 
