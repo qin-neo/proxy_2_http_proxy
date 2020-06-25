@@ -49,7 +49,8 @@ class https_proxy(socketserver.StreamRequestHandler):
         print('--{}:{}--END'.format(peer_host, peer_port))
 
 def get_local_ip(ip, port):
-    try:        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect((ip, port))
         return s.getsockname()[0]
     finally:
