@@ -1,27 +1,28 @@
 # proxy_2_http_proxy
 ```
+usage: proxy_2_http_proxy.py [-h] [-l LOCAL_IP_PORT] -c CLIENT_IP -p PROXY_IP_PORT
+
 proxy_2_http_proxy: forward http(s) to http_proxy server. qinhuawei@outlook.com
+
+  Client_PC ---->  Laptop     ---->     HTTP_PROXY    ---->   Internet
+   10.0.0.2        20.0.0.2             30.0.0.2:8888
+-c 10.0.0.2      -l 0.0.0.0:1234     -p 30.0.0.2:8888
+
+EXAMPLE: python proxy_2_http_proxy.py -c 10.0.0.2 -p 30.0.0.2:8888
+On client_PC:
+export http_proxy=http://20.0.0.2:1234
+If HTTP_PROXY need password authentication, please put your password on client_PC as example:
+export http_proxy=http://username:password@20.0.0.2:1234
+
+HTTPS cert issue, please visit https://github.com/qin-neo/proxy_2_http_proxy
+
 optional arguments:
-  -h, --help              show this help message and exit>
-  --local_port LOCAL_PORT local PORT, default 1234                   
-  --local_ip LOCAL_IP     local server IP, default 0.0.0.0
-  -c CLIENT_IP            client IP, Only forward this IP request
-  -r REMOTE_SERVER_IP     HTTP_PROXY Server IP
-  -p REMOTE_SERVER_PORT   HTTP_PROXY Server PORT
+  -h, --help        show this help message and exit
+  -l LOCAL_IP_PORT  local IP Port for client visit, default 0.0.0.0:1234
+  -c CLIENT_IP      client IP, example: 10.0.0.2,10.0.0.3
+  -p PROXY_IP_PORT  The Real HTTP_PROXY IP:PORT, example:30.0.0.2:8888
 
-      Client    ---->    Laptop     ---->     HTTP_PROXY    ---->   Internet
-    10.0.0.2           20.0.0.2              30.0.0.2:8888
-
-Laptop visit Internet
-                     http_porxy=http://user:pass@30.0.3.2:8888
-                    https_proxy=http://user:pass@30.0.3.2:8888
-
-Client visit Internet:
-# laptop run proxy_2_http_proxy.py
-                  python3 proxy_2_http_proxy.py -r 30.0.3.2 - p 8888 -c 10.0.0.2
-# client config http_proxy
- http_porxy=http://user:pass@20.0.0.2:1234
-https_proxy=http://user:pass@20.0.0.2:1234
+HTTPS cert issue, please visit https://github.com/qin-neo/proxy_2_http_proxy
 ```
 
 ## On Client, if met SSL: CERTIFICATE_VERIFY_FAILED or simular error,
