@@ -1,5 +1,5 @@
 # qinhuawei@outlook.com
-import logging,threading,socket,socks,getpass,argparse
+import logging,threading,socket,socks,getpass,argparse,select
 from urllib.parse import urlparse
 
 def getaddrinfo(*args):
@@ -26,13 +26,29 @@ class https_proxy():
 
         url=urlparse(headers['path'])
         if url.scheme == 'http':
-            logging.info(url)
+            #logging.info(url)
             if url.path.count(':'):
                 ip, port = url.netloc.split(':')
             else:
                 ip = url.netloc
                 port = 80
-            logging.critical('------- HTTP not supported ---------')
+            proxy_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            proxy_sock.connect((ip, int(port)))
+            proxy_sock.sendall(header.encode())
+
+            inputs  = [proxy_sock, client_sock]
+            outputs = []
+            while True:
+                readable, writable, exceptional = select.select(inputs, outputs, inputs)
+                try:
+                    for s in readable:
+                        if proxy_sock == s:
+                            client_sock.sendall(proxy_sock.recv(512))
+                        else:
+                            proxy_sock.sendall(client_sock.recv(512))
+                except:
+                    logging.exception('------http------')
+                    break
             return
         else:
             logging.info(url.path)
