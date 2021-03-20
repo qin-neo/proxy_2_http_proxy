@@ -1,6 +1,13 @@
 # qinhuawei@outlook.com
-import logging,threading,socket,socks,getpass,argparse,select
+import logging,threading,socket,getpass,argparse,select,os
 from urllib.parse import urlparse
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)-15s %(levelname).4s %(filename)s:%(lineno)-4d %(message)s")
+
+try:
+    import socks
+except:
+    logging.warning('Please install pysocks, as "python -m pip install pysocks"')
+    os._exit(1)
 
 def getaddrinfo(*args):
     if not args[0]:
@@ -119,35 +126,33 @@ class tcp_server():
 def get_local_ip(ip, port):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(2)
         s.connect((ip, port))
         return s.getsockname()[0]
+    except:
+        logging.exception(f'Connect proxy {ip}:{port} failed!')
+        os._exit(1)
     finally:
         s.close()
-    return ''
 
 if __name__ == "__main__":
-    log_format = "%(asctime)-15s %(levelname).4s %(filename)s:%(lineno)-4d %(message)s"
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(logging.Formatter(log_format))
-    rootLogger = logging.getLogger()
-    rootLogger.setLevel(logging.INFO)
-    rootLogger.addHandler(consoleHandler)
+    logging.info("--------------start--------------")
 
     description = '''proxy_2_http_proxy: forward http(s) to http_proxy server. qinhuawei@outlook.com
   Client_PC ---->  Laptop     ---->     HTTP_PROXY    ---->   Internet
    10.0.0.2        20.0.0.2             30.0.0.2:8888
 -c 10.0.0.2      -l 0.0.0.0:1234     -p 30.0.0.2:8888
-EXAMPLE: python proxy_2_http_proxy_v2.py -c 10.0.0.2 -p 30.0.0.2:8888 -u proxy_username
+EXAMPLE: python proxy_2_http_proxy_v2.py -c 10.0.0.2,10.0.0.3 -p 30.0.0.2:8888 -u proxy_username
 On client_PC:
 export https_proxy=http://20.0.0.2:1234
 
 HTTPS cert issue, please visit https://github.com/qin-neo/proxy_2_http_proxy
 '''
-    parser_t = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
+    parser_t = argparse.ArgumentParser(description=description)
     parser_t.add_argument('-l', dest='local_ip_port', type=str, required=False, default='0.0.0.0:1234',  help='local IP Port for client visit, default 0.0.0.0:1234')
     parser_t.add_argument('-c', dest='client_ip', type=str, required=True, help='client IP, example: 10.0.0.2,10.0.0.3')
     parser_t.add_argument('-p', dest='proxy_ip_port', type=str, required=True, help='The Real HTTP_PROXY IP:PORT, example:30.0.0.2:8888')
-    parser_t.add_argument('-u', dest='user_pass', type=str, required=True, help='Username with password input or username:password')
+    parser_t.add_argument('-u', dest='user_pass', type=str, required=False, help='Username with password input or username:password')
     args = parser_t.parse_args()
 
     local_ip, local_port = args.local_ip_port.split(':')
@@ -155,15 +160,17 @@ HTTPS cert issue, please visit https://github.com/qin-neo/proxy_2_http_proxy
     proxy_ip, proxy_port = args.proxy_ip_port.split(':')
     proxy_port = int(proxy_port)
 
-    client_ips = args.client_ip.split(',')
-    client_ips.append('127.0.0.1')
-
     if local_ip == '0.0.0.0':
         ip_2_client = get_local_ip(proxy_ip, proxy_port)
     else:
         ip_2_client = local_ip
-        client_ips.append(local_ip)
     
+    client_ips = args.client_ip.split(',')
+    if not '127.0.0.1' in client_ips:
+        client_ips.append('127.0.0.1')
+    if not ip_2_client in client_ips:
+        client_ips.append(ip_2_client)
+
     if args.user_pass.count(':'):
         usename, password = args.user_pass.split(':')
     else:
